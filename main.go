@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/hello" {
+		http.Error(w, "404 Not Found", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method not accepted", http.StatusNotFound)
+		return
+	}
+
+	fmt.Fprintf(w, "Hello")
+}
+
+func formHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		fmt.Fprintf(w, " error on the formParse() : err = %v", err)
+		return
+	}
+
+	fmt.Fprintf(w, "Post request succesful \n")
+	name := r.FormValue("name")
+	fmt.Fprintf(w, "Name : %s \n", name)
+}
+
+func main() {
+
+	fileServer := http.FileServer(http.Dir("./static"))
+
+	http.Handle("/", fileServer)
+	http.HandleFunc("/form", formHandler)
+	http.HandleFunc("/hello", helloHandler)
+
+	fmt.Println("Server starting at port 90")
+
+	if err := http.ListenAndServe(":90", nil); err != nil {
+		log.Fatal(err)
+	}
+}
